@@ -61,6 +61,8 @@ public class CropImageActivity extends MonitoredActivity {
     private Uri sourceUri;
     private Uri saveUri;
 
+	private CropInformation cropInformation;
+
     private boolean isSaving;
 
     private int sampleSize;
@@ -118,6 +120,7 @@ public class CropImageActivity extends MonitoredActivity {
             maxX = extras.getInt(Crop.Extra.MAX_X);
             maxY = extras.getInt(Crop.Extra.MAX_Y);
             saveUri = extras.getParcelable(MediaStore.EXTRA_OUTPUT);
+			cropInformation = extras.containsKey(Crop.Extra.CROP_INFORMATION) ? (CropInformation)extras.getSerializable(Crop.Extra.CROP_INFORMATION) : null;
         }
 
         sourceUri = intent.getData();
@@ -209,31 +212,45 @@ public class CropImageActivity extends MonitoredActivity {
     private class Cropper {
 
         private void makeDefault() {
-            if (rotateBitmap == null) {
-                return;
-            }
+			if (rotateBitmap == null) {
+				return;
+			}
 
-            HighlightView hv = new HighlightView(imageView);
-            final int width = rotateBitmap.getWidth();
-            final int height = rotateBitmap.getHeight();
+			HighlightView hv = new HighlightView(imageView);
+			final int width = rotateBitmap.getWidth();
+			final int height = rotateBitmap.getHeight();
 
-            Rect imageRect = new Rect(0, 0, width, height);
+			Rect imageRect = new Rect(0, 0, width, height);
 
-            // Make the default size about 4/5 of the width or height
-            int cropWidth = Math.min(width, height) * 4 / 5;
-            @SuppressWarnings("SuspiciousNameCombination")
-            int cropHeight = cropWidth;
+			int cropWidth;
+			int cropHeight;
+			int x;
+			int y;
 
-            if (aspectX != 0 && aspectY != 0) {
-                if (aspectX > aspectY) {
-                    cropHeight = cropWidth * aspectY / aspectX;
-                } else {
-                    cropWidth = cropHeight * aspectX / aspectY;
-                }
-            }
+			if (cropInformation != null && cropInformation.isHasCrop()) {
 
-            int x = (width - cropWidth) / 2;
-            int y = (height - cropHeight) / 2;
+				x = (int)(width * cropInformation.getX());
+				y = (int)(height   * cropInformation.getY());
+				cropWidth = (int)(width   * cropInformation.getW());
+				cropHeight = (int)(height  * cropInformation.getH());
+
+			} else {
+
+				// Make the default size about 4/5 of the width or height
+				cropWidth = Math.min(width, height) * 4 / 5;
+				cropHeight = cropWidth;
+
+				if (aspectX != 0 && aspectY != 0) {
+					if (aspectX > aspectY) {
+						cropHeight = cropWidth * aspectY / aspectX;
+					} else {
+						cropWidth = cropHeight * aspectX / aspectY;
+					}
+				}
+
+				x = (width - cropWidth) / 2;
+				y = (height - cropHeight) / 2;
+			}
 
             RectF cropRect = new RectF(x, y, x + cropWidth, y + cropHeight);
             hv.setup(imageView.getUnrotatedMatrix(), imageRect, cropRect, aspectX != 0 && aspectY != 0);
@@ -254,6 +271,18 @@ public class CropImageActivity extends MonitoredActivity {
         }
     }
 
+	protected void setCropInformation() {
+		Rect r = cropView.getScaledCropRect(1);
+		if (cropInformation != null && rotateBitmap != null) {
+			cropInformation.set(
+					(float)r.left / (float)rotateBitmap.getWidth(),
+					(float)r.top / (float)rotateBitmap.getHeight(),
+					(float)r.width() / (float)rotateBitmap.getWidth(),
+					(float)r.height() / (float)rotateBitmap.getHeight()
+			);
+		}
+	}
+
     /*
      * TODO
      * This should use the decode/crop/encode single step API so that the whole
@@ -269,6 +298,8 @@ public class CropImageActivity extends MonitoredActivity {
         Rect r = cropView.getScaledCropRect(sampleSize);
         int width = r.width();
         int height = r.height();
+
+		setCropInformation();
 
         int outWidth = width, outHeight = height;
         if (maxX > 0 && maxY > 0 && (width > maxX || height > maxY)) {
@@ -318,6 +349,11 @@ public class CropImageActivity extends MonitoredActivity {
                     }, handler
             );
         } else {
+			Intent i = new Intent();
+			if (cropInformation != null) {
+				i.putExtra(Crop.RESULT_INTENT_CROP_INFORMATION, cropInformation);
+			}
+			setResult(RESULT_OK, i);
             finish();
         }
     }
@@ -437,6 +473,11 @@ public class CropImageActivity extends MonitoredActivity {
             }
         });
 
+		Intent i = new Intent();
+		if (cropInformation != null) {
+			i.putExtra(Crop.RESULT_INTENT_CROP_INFORMATION, cropInformation);
+		}
+		setResult(RESULT_OK, i);
         finish();
     }
 

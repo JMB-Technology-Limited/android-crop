@@ -26,7 +26,10 @@ public class Crop {
         String MAX_X = "max_x";
         String MAX_Y = "max_y";
         String ERROR = "error";
+		String CROP_INFORMATION = "crop_information";
     }
+
+	public static String RESULT_INTENT_CROP_INFORMATION = "crop_information";
 
     private Intent cropIntent;
 
@@ -49,6 +52,11 @@ public class Crop {
         cropIntent.putExtra(MediaStore.EXTRA_OUTPUT, output);
         return this;
     }
+
+	public Crop withCropInformation(CropInformation cropInformation) {
+        cropIntent.putExtra(Extra.CROP_INFORMATION, cropInformation);
+        return this;
+	}
 
     /**
      * Set fixed aspect ratio for crop area
