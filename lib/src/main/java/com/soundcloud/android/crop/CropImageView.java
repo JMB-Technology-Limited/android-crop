@@ -18,6 +18,8 @@ public class CropImageView extends ImageViewTouchBase {
     private float lastY;
     private int motionEdge;
 
+	protected boolean centerBasedOnHighlightView = true;
+
     @SuppressWarnings("UnusedDeclaration")
     public CropImageView(Context context) {
         super(context);
@@ -164,6 +166,9 @@ public class CropImageView extends ImageViewTouchBase {
     // If the cropping rectangle's size changed significantly, change the
     // view's center and scale according to the cropping rectangle.
     private void centerBasedOnHighlightView(HighlightView hv) {
+		if (!centerBasedOnHighlightView) {
+			return;
+		}
         Rect drawRect = hv.drawRect;
 
         float width = drawRect.width();
@@ -200,4 +205,9 @@ public class CropImageView extends ImageViewTouchBase {
         highlightViews.add(hv);
         invalidate();
     }
+
+
+	public void setCenterBasedOnHighlightView(boolean centerBasedOnHighlightView) {
+		this.centerBasedOnHighlightView = centerBasedOnHighlightView;
+	}
 }

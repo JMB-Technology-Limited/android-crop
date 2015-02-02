@@ -27,6 +27,7 @@ public class Crop {
         String MAX_Y = "max_y";
         String ERROR = "error";
 		String CROP_INFORMATION = "crop_information";
+		String WITH_ZOOM = "with_zoom";
     }
 
 	public static String RESULT_INTENT_CROP_INFORMATION = "crop_information";
@@ -90,6 +91,11 @@ public class Crop {
         cropIntent.putExtra(Extra.MAX_Y, height);
         return this;
     }
+
+	public Crop withNoZoom() {
+		cropIntent.putExtra(Extra.WITH_ZOOM, false);
+		return this;
+	}
 
     /**
      * Send the crop Intent!

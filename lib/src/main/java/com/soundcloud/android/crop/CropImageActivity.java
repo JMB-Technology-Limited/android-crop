@@ -69,6 +69,7 @@ public class CropImageActivity extends MonitoredActivity {
     private RotateBitmap rotateBitmap;
     private CropImageView imageView;
     private HighlightView cropView;
+	private boolean withZoom;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -121,7 +122,12 @@ public class CropImageActivity extends MonitoredActivity {
             maxY = extras.getInt(Crop.Extra.MAX_Y);
             saveUri = extras.getParcelable(MediaStore.EXTRA_OUTPUT);
 			cropInformation = extras.containsKey(Crop.Extra.CROP_INFORMATION) ? (CropInformation)extras.getSerializable(Crop.Extra.CROP_INFORMATION) : null;
+			withZoom = extras.getBoolean(Crop.Extra.WITH_ZOOM, true);
         }
+
+		if (!withZoom) {
+			imageView.setCenterBasedOnHighlightView(false);
+		}
 
         sourceUri = intent.getData();
         if (sourceUri != null) {
